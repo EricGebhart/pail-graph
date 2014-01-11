@@ -13,7 +13,7 @@
                  [org.apache.hadoop/hadoop-core "1.2.0" ]
                  [cascalog "2.0.0" ]
                  [clj-pail "0.1.3"]
-                 [clj-thrift "0.1.2"]
+                 [clj-thrift "0.1.1"]
                  [pail-thrift "0.1.0"]
                  [pail-cascalog "0.1.0"]]
 

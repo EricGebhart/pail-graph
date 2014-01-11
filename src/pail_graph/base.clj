@@ -1,6 +1,6 @@
 (ns pail-graph.base
   (:require [pail-graph.type :as type]
-            [pail-graph.union :as union]
+            [clj-thrift.union :as union]
             [clj-thrift.base :refer :all]))
 
 ; simple data extraction

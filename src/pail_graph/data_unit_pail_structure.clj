@@ -11,5 +11,5 @@
                :type DataUnit
                :serializer  (s/thrift-serializer DataUnit)
                ;:partitioner (pt/union-partitioner DataUnit)
-               :partitioner (pg/union-property-name-partitioner DataUnit)
+               :partitioner (pg/union-name-property-partitioner DataUnit)
                :tapmapper   (t/union-tap-mapper))

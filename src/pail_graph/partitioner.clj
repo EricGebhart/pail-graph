@@ -1,9 +1,9 @@
 (ns pail-graph.partitioner
   "Defines a Pail partitioner for graph schema thrift objects."
   (:require [clj-pail.partitioner :as p]
-            [pail-graph.union :as union]
-            [pail-graph.base :as thrift]
-            [pail-graph.type :as type]))
+            [clj-thrift.union :as union]
+            [clj-thrift.base :as thrift]
+            [clj-thrift.type :as type]))
 
 
 (defrecord ^{:doc "A 2 level pail partitioner for Thrift unions. It requires a type, which must be a subtype

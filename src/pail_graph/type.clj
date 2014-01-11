@@ -4,16 +4,20 @@
             [clj-thrift.type :refer :all])
   (:import (org.apache.thrift TFieldIdEnum)))
 
+(defn- meta-data-map
+  "Returns the `metaDataMap` field of Thrift class."
+  [#^Class type]
+  (.. type
+    (getField "metaDataMap")
+    (get nil)))
 
-(defn field-map [type field-name]
-  "get a field map for a given field consisting of the id and the name.
-   [ :id <field-id> :name <field-name> ]"
-  {:id   (.getThriftFieldId #^TFieldIdEnum (get (field-enum-map type) (keyword field-name)))
-   :name (.getFieldName #^TFieldIdEnum (get (field-enum-map type) (keyword field-name)))})
 
-(defn fields-map [t]
-  "Get a list of field maps for a given Union or Structure."
-  (mapv (partial field t) (ordered-field-names t)))
+(defn- field-enum-map
+  [type]
+  (into {} (map (juxt (comp keyword #(.getFieldName %))
+                      identity)
+                (keys (meta-data-map type)))))
+
 
 
 ; get ordered field names and ids to facilitate Creation of Cascalog taps and operators.
@@ -31,6 +35,15 @@
   (into [] (map (comp #(.getThriftFieldId #^TFieldIdEnum %) key)
                  (meta-data-map type))))
 
+(defn field-map [type field-name]
+  "get a field map for a given field consisting of the id and the name.
+   [ :id <field-id> :name <field-name> ]"
+  {:id   (.getThriftFieldId #^TFieldIdEnum (get (field-enum-map type) (keyword field-name)))
+   :name (.getFieldName #^TFieldIdEnum (get (field-enum-map type) (keyword field-name)))})
+
+(defn fields-map [t]
+  "Get a list of field maps for a given Union or Structure."
+  (mapv (partial field t) (ordered-field-names t)))
 
 ;; Get a list of property paths to make it easy to create
 ;; Cascalog taps for partitioned data.
