@@ -1,4 +1,13 @@
-pail-graph
-==========
+# pail-graph
 
-Extension library to streamline the use of Graph Schema thrift objects with Pail and Cascalog.
+A Clojure library designed to ... well, that part is up to you.
+
+## Usage
+
+FIXME
+
+## License
+
+Copyright © 2014 FIXME
+
+Distributed under the Eclipse Public License, the same as Clojure.
