@@ -1,11 +1,11 @@
-(ns clj-pail.structure-test
-  (:require [clj-pail.fakes.structure :as fakes]
+(ns pail-graph.structure-test
+  (:require [pail-graph.fakes.structure :as fakes]
             [clj-pail.serializer :as serializer]
             [clj-pail.partitioner :as partitioner]
-            [clj-pail.tapmapper :as tapmapper])
+            [pail-graph.tapmapper :as tapmapper])
   (:import [com.backtype.hadoop.pail PailStructure]
            [clj_pail.partitioner NullPartitioner]
-           [clj_pail.fakes.structure DefaultPailStructure FakePailStructure FakeSerializer FakePartitioner UnserializableStateStructure]
+           [pail_graph.fakes.structure DefaultPailStructure FakePailStructure FakeSerializer FakePartitioner UnserializableStateStructure]
            [java.io ByteArrayOutputStream ByteArrayInputStream ObjectOutputStream ObjectInputStream NotSerializableException])
   (:use midje.sweet))
 

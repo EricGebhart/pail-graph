@@ -32,3 +32,7 @@
          3      [ :location   ["property" "location"]]
          4      [ :age        ["property" "age"]]
          5      [ :friendshipedge ["friendshipedge"]]))
+
+
+(fact "Get tap returns nil if tap not found"
+ (pt/get-tap (pt/find-or-create (DataUnitPailStructure.) "foo") :missing) = > nil?)

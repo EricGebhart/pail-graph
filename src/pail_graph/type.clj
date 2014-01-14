@@ -17,7 +17,7 @@
                    struct-field?])
 
 
-;;;;;; this can go away when the pull request goes.
+;;;;;; this can go away when the pull request for clj-thrift goes.
 
 (defn- meta-data-map
   "Returns the `metaDataMap` field of Thrift class."

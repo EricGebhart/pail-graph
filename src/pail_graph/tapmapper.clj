@@ -7,6 +7,14 @@
 ;   [ :location ["property" "location"]]
 ;Specify the tapmapper with :tapmapper in the PailStructure.
 ;
+(defn nulltapmapper [path]
+  "A null tapmapper returns no taps"
+  {})
+
+(defn null-tapmapper
+  "return a null tapmapper"
+  []
+  nulltapmapper)
 
 ; Union taps - returns the top level field id's as a single directory path.
 (defn union-taps [path]
