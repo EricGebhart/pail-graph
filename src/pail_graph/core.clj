@@ -1,35 +1,81 @@
 (ns pail-graph.core
   "Defines Pail-Graph core functionality.
-   clj-pail.core and  pail-cascalog.core are integrated
+   clj-pail.core and pail-cascalog.core are integrated
    into this namespace."
   (:require [pail-graph.type :as type]
-            [clj-pail.core :refer :all]
-            [pail-cascalog.core :refer :all]))
+            [potemkin :as pt]
+            [clj-pail.core]
+            [pail-cascalog.core])
+  (:import (com.backtype.hadoop.pail Pail PailSpec PailStructure)))
 
-(defn tap-map [pail-struct]
-  "Get the tap map for a Pail."
-  (let [tapmapper (.getTapMapper pail-struct)
+; pull in clj-pail and pail-cascalog core functionality.
+(pt/import-vars [clj-pail.core
+                    object-seq
+                    spec
+                    pail
+                    with-snapshot
+                    create]
+                [pail-cascalog.core
+                    pail->tap
+                    tap-options
+                    tap])
+
+
+(defn pail-structure
+  "Given a pail return the PailStructure."
+  [pail]
+  (-> pail (.getSpec) (.getStructure)))
+
+(defn get-structure
+  "Given a PailStructure or a Pail return a PailStructure"
+  [pail-or-structure]
+  (if (instance? PailStructure pail-or-structure)
+        pail-or-structure
+        (pail-structure pail-or-structure)))
+
+(defn tap-map
+  "Get the tap map for a Pail or Pail Structure"
+  [pail-or-struct]
+  (let [pail-struct (get-structure pail-or-struct)
+        tapmapper (.getTapMapper pail-struct)
         type (.getType pail-struct)]
     (into {} (map tapmapper (type/property-paths type)))))
 
-(defn list-taps [pail-struct]
-  "Give a list of the Tap keys available for a Pail"
-  (keys (tap-map pail-struct)))
+(defn list-taps
+  "Give a list of the Tap keys available for a Pail or Pail Structure"
+  [pail-or-struct]
+  (let [pail-struct (get-structure pail-or-struct)]
+    (keys (tap-map pail-struct))))
 
 (defn get-tap
   "Creates a `PailTap` from an existing vertically partitioned pail, by selecting an
-   entry from the Pail's tap map."
-  [pail-struct tap-key]
-  (pail->tap pail :field-name (name tap-key) :attributes [(tap-key (pail/tap-map pail-struct))] ))
+   entry from the Pail's tap map. Takes a pail connection or a PailStructure."
+  [pail tap-key]
+  (let [tapmap (tap-map (pail-structure pail))]
+    (pail->tap pail :field-name (name tap-key) :attributes [(tap-key tapmap)] )))
 
+
+;;;; TODO
+(defn validate
+  "validate a pail connection matches a pail structure. This is basically an implementation
+   of the validation code in dfs-datastores pail create(). The specs are only compared if
+   .getName is not nil. Otherwise it's just a check to make sure the PailStructure types match."
+  [pail-connection structure]
+  (let [conn-spec (.getSpec pail-connection)
+        conn-struct (.getStructure conn-spec)
+        struct-spec (spec structure)]
+    (cond (and (.getName struct-spec) (not (.equals conn-spec struct-spec))) false
+          (not (= (type structure) (type conn-struct))) false
+          :else true)))
 
 ; these can go away when the pull request for clj-pail is done.
 (defn ^Pail create
    "Creates a Pail from a PailSpec at `path`."
    [spec-or-structure path & {:keys [filesystem fail-on-exists]
-                              :or {fail-on-exists true}}]
-   (if (instance? spec-or-structure PailStructure)
-     (recur (spec spec-or-structure))
+                              :or {fail-on-exists true}
+                              :as opts}]
+   (if (instance? PailStructure spec-or-structure)
+     (apply create (spec spec-or-structure) path (mapcat identity opts))
      (if filesystem
        (Pail/create filesystem path spec-or-structure fail-on-exists)
        (Pail/create path spec-or-structure fail-on-exists))))

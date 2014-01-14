@@ -11,13 +11,14 @@
 
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.apache.hadoop/hadoop-core "1.2.0" ]
+                 [potemkin "0.3.4"]
                  [cascalog "2.0.0" ]
                  [clj-pail "0.1.3"]
-                 [clj-thrift "0.1.1"]
+                 [clj-thrift "0.1.1-SNAPSHOT"]
                  [pail-thrift "0.1.0"]
                  [pail-cascalog "0.1.0"]]
 
-  :aot [pail-graph.data-unit-pail-structure]
+  :aot [pail-graph.data-unit-pail-structure pail-graph.union-pail-structure]
 
   :profiles {:1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
              :1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}

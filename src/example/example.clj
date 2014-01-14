@@ -2,12 +2,11 @@
   (:require
    [pail-graph.base :as thrift]
    [pail-graph.core :as pail]
-   ;[pail-cascalog.core :as pcas]
-   ;[cascalog.logic.ops :as cop]
    )
   (:use cascalog.api)
   (:import [people DataUnit]
-           [pail-graph DataUnitPailStructure]))
+           [pail-graph DataUnitPailStructure]
+           [pail-graph UnionPailStructure]))
 
 
 (def du1-1 (thrift/build DataUnit {:property {:id "123"
@@ -45,7 +44,8 @@
 
 ;location property deconstruction.
 (defmapfn locprop
-  "Deconstruct a location property object, which has an id and a location struct"
+  "Deconstruct a property object, which has an id and a location struct
+   Top Data Union -> Property-struct {:id :property} -> Property-union -> location structure"
   [du]
   (into [(thrift/property-value du :id)]
         (map #(thrift/value (thrift/property-union-value du :property) %)
@@ -58,10 +58,11 @@
   [du]
   (into [(thrift/property-value du :id)]
         (let [th-structure (thrift/property-union-value du :property)]
-            (map #(thrift/value th-structure %) (thrift/keys-from-object th-structure)))))
+            (map #(thrift/value th-structure %) (thrift/field-keys th-structure)))))
 
 
 (def mypail (pail/find-or-create ( DataUnitPailStructure.) "example_output"))
+(def yourpail (pail/find-or-create ( UnionPailStructure.) "other_output"))
 
 
 (defn get-names [pail-connection]
@@ -95,17 +96,19 @@
 
 
 (defn tests []
-  (let [pail-struct (pail-graph.DataUnitPailStructure.)]
+  (let [pail-struct (DataUnitPailStructure.)]
     ; see which partitioner we have
     (println (.getPartitioner pail-struct))
+    (println (.getTapMapper pail-struct))
     ; print target partitions
     (prn-str [
               (.getTarget pail-struct du1-1)
-              (.getTarget pail-struct du2-1)
+              (.getTarget pail-struct du1-2)
+              (.getTarget pail-struct du1-3)
               (.getTarget pail-struct du3)
               ])
    )
-  (let [pc (pail/find-or-create "example_output")
+  (let [pc (pail/find-or-create (DataUnitPailStructure.) "example_output")
         fntap (pail/get-tap pc :first_name)
         loctap (pail/get-tap pc :location)]
     ;print objects and their deconstructed values
@@ -117,7 +120,7 @@
     (println (structprop du1-3))
 
     ; write the objects to the pail
-    (write-objects pc objectlist)
+    (pail/write-objects pc objectlist)
 
     ; Query the data back out.
     (def names (??<- [?id ?first-name]

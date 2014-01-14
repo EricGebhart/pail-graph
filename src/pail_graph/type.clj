@@ -1,8 +1,23 @@
 (ns pail-graph.type
   "Functions for working with Graph Schema Thrift types."
   (:require [clojure.zip :as zip]
-            [clj-thrift.type :refer :all])
+            [potemkin :as pt]
+            [clj-thrift.type])
   (:import (org.apache.thrift TFieldIdEnum)))
+
+
+; pull in clj-thrift.type functionality (ns-publics 'clj-thrift.type)
+(pt/import-vars [clj-thrift.type
+                   binary-field?
+                   container-field?
+                   field-ids
+                   field-names
+                   field
+                   field-type
+                   struct-field?])
+
+
+;;;;;; this can go away when the pull request goes.
 
 (defn- meta-data-map
   "Returns the `metaDataMap` field of Thrift class."
@@ -18,32 +33,34 @@
                       identity)
                 (keys (meta-data-map type)))))
 
+(defn- field
+  [type field-name]
+  (get (field-enum-map type) field-name))
 
+(defn field-id-meta [type field-name]
+  "Returns a map of field id and name of the named field"
+  (when-let [f (field type (keyword field-name))]
+    {:id   (.getThriftFieldId #^TFieldIdEnum f)
+     :name field-name  }))
+
+(defn field-meta-list
+  "Returns an ordered vector of field id meta maps for a given Thrift type."
+  [type]
+  (vec (sort-by :id (map (partial field-id-meta type) (field-names type)))))
+
+;;;;;;;;;;;;;;;;;;; - clj-thrift code ends here.
 
 ; get ordered field names and ids to facilitate Creation of Cascalog taps and operators.
 (defn ordered-field-names
-  "Returns a vector of names for the fields of a Thrift type. The function's argument should be
-  the class itself. It works with structs and unions."
+  "Returns a vector of names for the fields of a Thrift struct or union.
+  The function's argument should be the class itself."
   [type]
-  "Give an ordered vector of field names for a struct or union."
-  (into [] (map (comp #(.getFieldName #^TFieldIdEnum %) key)
-                 (meta-data-map type))))
+    (mapv :name (field-meta-list type)))
 
 (defn ordered-field-ids
   "Give an ordered vector of field ids for a struct or union."
   [type]
-  (into [] (map (comp #(.getThriftFieldId #^TFieldIdEnum %) key)
-                 (meta-data-map type))))
-
-(defn field-map [type field-name]
-  "get a field map for a given field consisting of the id and the name.
-   [ :id <field-id> :name <field-name> ]"
-  {:id   (.getThriftFieldId #^TFieldIdEnum (get (field-enum-map type) (keyword field-name)))
-   :name (.getFieldName #^TFieldIdEnum (get (field-enum-map type) (keyword field-name)))})
-
-(defn fields-map [t]
-  "Get a list of field maps for a given Union or Structure."
-  (mapv (partial field t) (ordered-field-names t)))
+    (mapv :id (field-meta-list type)))
 
 ;; Get a list of property paths to make it easy to create
 ;; Cascalog taps for partitioned data.
@@ -59,10 +76,11 @@
   "drill down through the fields of a thrift object and create
    a tree of paths consisting of field-maps.
    With each leaf node terminating in nil"
-  [datatype & {:keys [p] :or []}]
+  [datatype & {:keys [parent] :or []}]
   (if datatype
-    (mapv #(vec (conj p %1 (get-field-tree (get-type %2 %1) :p (vec (conj p %1)))))
-         (fields-map datatype) (repeat datatype))))
+    (mapv #(vec (conj parent %1 (get-field-tree (get-type %2 %1)
+                                                :parent (vec (conj parent %1)))))
+         (field-meta-list datatype) (repeat datatype))))
 
 (defn- ptest
   "If it's a vector that ends with nil, it's a leaf node"

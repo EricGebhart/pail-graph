@@ -7,9 +7,9 @@
     (:import [people DataUnit])
   (:gen-class))
 
-(gen-structure thrift-pail.DataUnitPailStructure
+(gen-structure pail-graph.DataUnitPailStructure
                :type DataUnit
                :serializer  (s/thrift-serializer DataUnit)
                ;:partitioner (pt/union-partitioner DataUnit)
                :partitioner (pg/union-name-property-partitioner DataUnit)
-               :tapmapper   (t/union-tap-mapper))
+               :tapmapper   (t/union-name-property-tap-mapper))
