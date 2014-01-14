@@ -49,15 +49,16 @@
 
 (defn get-tap
   "Creates a `PailTap` from an existing vertically partitioned pail, by selecting an
-   entry from the Pail's tap map. Takes a pail connection or a PailStructure."
+   entry from the Pail's tap map. Takes a pail connection. returns nil if no tap found."
   [pail tap-key]
-  (let [tapmap (tap-map (pail-structure pail))]
-    (pail->tap pail :field-name (name tap-key) :attributes [(tap-key tapmap)] )))
+  (when-let [attrs (tap-key (tap-map pail))]
+    (pail->tap pail :field-name (name tap-key)
+               :attributes [attrs])))
 
 
 ;;;; TODO
 (defn validate
-  "validate a pail connection matches a pail structure. This is basically an implementation
+  "Validate that a pail connection matches a pail structure. This is basically an implementation
    of the validation code in dfs-datastores pail create(). The specs are only compared if
    .getName is not nil. Otherwise it's just a check to make sure the PailStructure types match."
   [pail-connection structure]
