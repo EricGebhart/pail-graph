@@ -1,5 +1,6 @@
 (ns pail-graph.example
   (:require
+   [pail-graph.type :as type]
    [pail-graph.base :as thrift]
    [pail-graph.core :as pail]
    )
@@ -68,7 +69,7 @@
 (defn get-names [pail-connection]
     (let [fntap (pail/get-tap pail-connection :first_name)]
       (??<- [?id ?first-name]
-            (fntap ?fn-data)
+            (fntap _ ?fn-data)
             (sprop ?fn-data :> ?id ?first-name))))
 
 
@@ -81,18 +82,33 @@
           (sprop ?fn-data :> ?id ?first-name)
           (sprop ?ln-data :> ?id ?last-name))))
 
+(defn get-location [pail-connection]
+  (let [loctap (pail/get-tap pail-connection :location)]
+    (??<- [!address !city !county !state !country !zip]
+          (loctap _ ?loc-data)
+          (locprop ?loc-data :> ?id !address !city !county !state !country !zip))))
+
+(??<- [!address !city !county !state !country !zip]
+      (loctap _ ?data)
+      (locprop ?data :> !id !address !city !county !state !country !zip))
+
+(defn get-slocation [pail-connection]
+  (let [loctap (pail/get-tap pail-connection :location)]
+    (??<- [?id ?data]
+          (loctap _ ?loc-data)
+          (sprop ?loc-data :> ?id !data))))
 
 (defn get-everything [pail-connection]
   (let [fntap (pail/get-tap pail-connection :first_name)
         lntap (pail/get-tap pail-connection :last_name)
-        loctap (pail/get-tap pail-connection :locaton)]
+        loctap (pail/get-tap pail-connection :location)]
     (??<- [?first-name ?last-name !address !city !county !state !country !zip]
           (fntap _ ?fn-data)
           (lntap _ ?ln-data)
           (loctap _ ?loc-data)
           (sprop ?fn-data :> ?id ?first-name)
           (sprop ?ln-data :> ?id ?last-name)
-          (structprop ?loc-data :> ?id !address !city !county !state !country !zip))))
+          (locprop ?loc-data :> ?id !address !city !county !state !country !zip))))
 
 
 (defn tests []

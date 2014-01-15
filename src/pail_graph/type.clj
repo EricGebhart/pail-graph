@@ -37,7 +37,7 @@
   [type field-name]
   (get (field-enum-map type) field-name))
 
-(defn field-id-meta [type field-name]
+(defn field-meta [type field-name]
   "Returns a map of field id and name of the named field"
   (when-let [f (field type (keyword field-name))]
     {:id   (.getThriftFieldId #^TFieldIdEnum f)
@@ -46,7 +46,7 @@
 (defn field-meta-list
   "Returns an ordered vector of field id meta maps for a given Thrift type."
   [type]
-  (vec (sort-by :id (map (partial field-id-meta type) (field-names type)))))
+  (vec (sort-by :id (map (partial field-meta type) (field-names type)))))
 
 ;;;;;;;;;;;;;;;;;;; - clj-thrift code ends here.
 
