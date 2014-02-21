@@ -1,5 +1,5 @@
-(defproject pail-graph "0.1.0-SNAPSHOT"
-  :description "Library for using Graph Schema, Thrift, Pail and Cascalog."
+(defproject pail-schema-example "0.1.0-SNAPSHOT"
+  :description "Example of using Prismatic Schema, Pail and Cascalog."
   :url "http://github.com/EricGebhart/"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -10,17 +10,12 @@
 
 
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [com.backtype/dfs-datastores "1.3.4"]
-                 [org.apache.hadoop/hadoop-core "1.2.0" ]
-                 [potemkin "0.3.4"]
                  [cascalog "2.0.0" ]
-                 [clj-pail "0.1.3"]
-                 [clj-thrift "0.1.1-SNAPSHOT"]
-                 [pail-thrift "0.1.0"]
-                 [pail-cascalog "0.1.0"]]
+                 [prismatic/schema "0.2.0"]
+                 [pail-cascalog "0.1.0"]
+                 [pail-schema "0.1.0-SNAPSHOT"]]
 
-  :aot [pail-graph.data-unit-pail-structure
-        pail-graph.union-pail-structure]
+  :aot [pail-schema-example.data-unit-pail-structure]
 
   :profiles {:1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
              :1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
@@ -28,11 +23,7 @@
              :1.6 {:dependencies [[org.clojure/clojure "1.6.0-master-SNAPSHOT"]]}
 
              :dev {:dependencies [[midje "1.5.1"]]
-                   :plugins [[lein-thriftc "0.1.0"]
-                             [lein-midje "3.0.1"]]
-                   :prep-tasks ["thriftc" "javac"]
-                   :source-paths ["src/test"]
-                   :aot [pail-graph.fakes.structure]}}
+                   :plugins [[lein-midje "3.0.1"]]}}
 
 
   :deploy-repositories [["releases" {:url "https://clojars.org/repo" :username :gpg :password :gpg}]
